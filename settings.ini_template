@@ -1,0 +1,10 @@
+[SYSTEM]
+DJANGO_KEY=root
+DEBUG=True
+
+[DATABASE]
+PASSWORD=db_pass
+USER=db_user
+NAME=db_name 
+HOST=db or localhost
+PORT=5432
