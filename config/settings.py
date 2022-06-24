@@ -30,6 +30,9 @@ INSTALLED_APPS = [
 
     #libs
     "rest_framework",
+
+    #apps
+    "gamble",
 ]
 
 MIDDLEWARE = [
