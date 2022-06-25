@@ -25,3 +25,4 @@ def config() -> None:
     #SYSTEM
     os.environ.setdefault("DJANGO_DEBUG", load_config(config_parse, SYSTEM, "DJANGO_DEBUG", "False"))
     os.environ.setdefault("DJANGO_KEY", load_config(config_parse, SYSTEM, "DJANGO_KEY", "super_secret_key"))
+    os.environ.setdefault("HOST", load_config(config_parse, SYSTEM, "HOST", "localhost:8000"))

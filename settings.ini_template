@@ -1,6 +1,7 @@
 [SYSTEM]
 DJANGO_KEY=root
 DEBUG=True
+HOST=localhost:8000
 
 [DATABASE]
 PASSWORD=db_pass
