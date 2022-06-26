@@ -8,7 +8,7 @@ from rest_framework import views, response, status
 
 class GetTheRandomBoxView(views.APIView):
 
-    def __get_current_round(self, slot_machine_id: int) -> CurrentRound:
+    def __get_current_round(self, slot_machine_id: int) -> tuple:
         """
         It creates a new CurrentRound object and returns it
         
@@ -21,7 +21,7 @@ class GetTheRandomBoxView(views.APIView):
         except CurrentRound.DoesNotExist:
             current_round = CurrentRound.objects.create(slot_machine=slot_machine)
 
-        return current_round
+        return current_round, slot_machine
 
     def __get_slot_machine(self, slot_machine_id: int) -> SlotMachine:
         """
@@ -43,15 +43,15 @@ class GetTheRandomBoxView(views.APIView):
         state_of_round.round += 1 
         state_of_round.save()
     
-    def __delete_slot_instances(self, box: Slot) -> None:
-        Slot.objects.filter(box=box).delete()
+    def __delete_slot_instances(self, slot_machine_id: int, box: Slot) -> None:
+        Slot.objects.filter(box=box, slot_machine=slot_machine_id).delete()
 
-    def __reload_round(self, current_round: CurrentRound) -> None: 
+    def __reload_round(self, current_round: CurrentRound, slot_machine_id: int) -> None: 
         current_round.delete()
-        requests.get(f'http://{HOST}/api/auto-complete/')
+        requests.get(f'http://{HOST}/api/auto-complete/{slot_machine_id}/')
 
 
-    def get(self, request, slot_machine_id: int):
+    def post(self, request, slot_machine_id: int):
         """
         The function gets the current round of the slot machine, if the current round is less than 11, it
         gets all the boxes that are not jackpot boxes, then it chooses a random box from the list of
@@ -62,40 +62,41 @@ class GetTheRandomBoxView(views.APIView):
         :param slot_machine_id: The id of the slot machine
         :return: The current round, the id of the box, and the weight of the box.
         """
-        current_round = self.__get_current_round(slot_machine_id)
+        current_round, slot_machine = self.__get_current_round(slot_machine_id)
         if current_round.round <= 11:
             try:
-                boxes = Slot.objects.filter(is_jackpot=False)
+                boxes = Slot.objects.filter(slot_machine=slot_machine, is_jackpot=False)
                 randome_box = choices(boxes)[-1]
-                self.__delete_slot_instances(randome_box.box)
+                self.__delete_slot_instances(slot_machine_id, randome_box.box)
                 self.__increase_round_counter(current_round)
 
                 return self.__return_response(current_round, randome_box)
 
             except IndexError:
-                jackpot_box = Slot.objects.get(is_jackpot=True)
-                self.__delete_slot_instances(jackpot_box.box)
+                jackpot_box = Slot.objects.get(slot_machine=slot_machine, is_jackpot=True)
+                self.__delete_slot_instances(slot_machine_id, jackpot_box.box)
                 self.__increase_round_counter(current_round)
 
-                self.__reload_round()
+                self.__reload_round(current_round, slot_machine_id)
                 return self.__return_response(current_round, jackpot_box)
 
 class AutoCreatePatternSlotsView(views.APIView):
     """
     View for do more comfotable code process
     """
-    def get(self, request):
-        Slot.objects.create(box=1, weight="20")
-        Slot.objects.create(box=2, weight="100")
-        Slot.objects.create(box=3, weight="45")
-        Slot.objects.create(box=4, weight="70")
-        Slot.objects.create(box=5, weight="15")
-        Slot.objects.create(box=6, weight="140")
-        Slot.objects.create(box=7, weight="20")
-        Slot.objects.create(box=8, weight="20")
-        Slot.objects.create(box=9, weight="140")
-        Slot.objects.create(box=10, weight="45")
-        Slot.objects.create(box=11, weight="Jackpot", is_jackpot=True)
+    def get(self, request, slot_machine_id: int):
+        machine = SlotMachine.objects.get(id=slot_machine_id)
+        Slot.objects.create(slot_machine=machine, box=1, weight="20")
+        Slot.objects.create(slot_machine=machine, box=2, weight="100")
+        Slot.objects.create(slot_machine=machine, box=3, weight="45")
+        Slot.objects.create(slot_machine=machine, box=4, weight="70")
+        Slot.objects.create(slot_machine=machine, box=5, weight="15")
+        Slot.objects.create(slot_machine=machine, box=6, weight="140")
+        Slot.objects.create(slot_machine=machine, box=7, weight="20")
+        Slot.objects.create(slot_machine=machine, box=8, weight="20")
+        Slot.objects.create(slot_machine=machine, box=9, weight="140")
+        Slot.objects.create(slot_machine=machine, box=10, weight="45")
+        Slot.objects.create(slot_machine=machine, box=11, weight="Jackpot", is_jackpot=True)
         return response.Response("Auto complete done")
         
-        #TODO make post request and finish get request by test task
+        #TODO игра готова, осталось доделать юзеров

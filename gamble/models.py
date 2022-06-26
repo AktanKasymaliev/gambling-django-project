@@ -11,6 +11,7 @@ class SlotMachine(models.Model):
         verbose_name_plural = 'Slot Machines'
 
 class Slot(models.Model):
+    slot_machine = models.ForeignKey(SlotMachine, on_delete=models.CASCADE, related_name='slot')
     box = models.PositiveSmallIntegerField(verbose_name='Box of cell')
     weight = models.CharField(verbose_name='Weight of box', max_length=10)
     is_jackpot = models.BooleanField(verbose_name="Is this box jackpot", default=False)
