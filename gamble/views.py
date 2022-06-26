@@ -8,7 +8,7 @@ from rest_framework import views, response, status
 
 class GetTheRandomBoxView(views.APIView):
 
-    def __get_current_round(self, slot_machine_id: int) -> tuple:
+    def __get_current_round(self, slot_machine_id: int) -> CurrentRound:
         """
         It creates a new CurrentRound object and returns it
         
@@ -21,7 +21,7 @@ class GetTheRandomBoxView(views.APIView):
         except CurrentRound.DoesNotExist:
             current_round = CurrentRound.objects.create(slot_machine=slot_machine)
 
-        return current_round, slot_machine
+        return current_round
 
     def __get_slot_machine(self, slot_machine_id: int) -> SlotMachine:
         """
@@ -62,10 +62,10 @@ class GetTheRandomBoxView(views.APIView):
         :param slot_machine_id: The id of the slot machine
         :return: The current round, the id of the box, and the weight of the box.
         """
-        current_round, slot_machine = self.__get_current_round(slot_machine_id)
+        current_round = self.__get_current_round(slot_machine_id)
         if current_round.round <= 11:
             try:
-                boxes = Slot.objects.filter(slot_machine=slot_machine, is_jackpot=False)
+                boxes = Slot.objects.filter(slot_machine=slot_machine_id, is_jackpot=False)
                 randome_box = choices(boxes)[-1]
                 self.__delete_slot_instances(slot_machine_id, randome_box.box)
                 self.__increase_round_counter(current_round)
@@ -73,7 +73,7 @@ class GetTheRandomBoxView(views.APIView):
                 return self.__return_response(current_round, randome_box)
 
             except IndexError:
-                jackpot_box = Slot.objects.get(slot_machine=slot_machine, is_jackpot=True)
+                jackpot_box = Slot.objects.get(slot_machine=slot_machine_id, is_jackpot=True)
                 self.__delete_slot_instances(slot_machine_id, jackpot_box.box)
                 self.__increase_round_counter(current_round)
 
