@@ -54,6 +54,10 @@ GRANT ALL PRIVILEGES ON DATABASE <database name> TO '<database user>';
 ```
 - python manage.py makemigrations
 - python manage.py migrate
+
+optional (if smth will go wrong):
+- python manage.py makemigrations gamble
+- python manage.py migrate gamble
 ```
 
 * Create superuser
