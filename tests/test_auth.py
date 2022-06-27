@@ -19,7 +19,18 @@ class BaseTestCase(TestCase):
         self.user_short_pass = {
             "email": "test2@gmail.com", 
             "username": "test2",
-            "password": "pass", }
+            "password": "pass"
+            }
+
+        self.user_no_password = {
+            'username': 'username', 
+            'password': ''
+            }
+
+        self.user_no_username =  {
+            'username': '',
+            'password': 'password'
+            }
 
 class RegisterTestCase(BaseTestCase):
 
@@ -40,17 +51,9 @@ class LoginTest(BaseTestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_cant_login_with_no_username(self):
-        user_no_username =  {
-            'username': '',
-            'password': 'password'
-            }
-        response = self.client.post(self.login_url, user_no_username)
+        response = self.client.post(self.login_url, self.user_no_username)
         self.assertEqual(response.status_code, 400)
 
     def test_cant_login_with_no_password(self):
-        user_no_password = {
-            'username': 'username', 
-            'password': ''
-            }
-        response= self.client.post(self.login_url, user_no_password)
+        response= self.client.post(self.login_url, self.user_no_password)
         self.assertEqual(response.status_code, 400)
