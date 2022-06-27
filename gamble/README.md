@@ -1,7 +1,7 @@
 # Pseudo slot spinner game
 
 How to start?
-* 1. Start project with docker or CMD:
+** 1. Start project with docker or CMD:
 * 2. Create superuser 
 * 3. Login into admin panel, then select `Slot Machines`.
         ![Screenshot](/readme_images/slotmachine.png?raw=true "Admin")
