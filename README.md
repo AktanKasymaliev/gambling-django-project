@@ -1,7 +1,7 @@
 # Pseudo slot spinner game
 This is test task.
 
-Hello, in the first, you sould clone rep:
+Hello, in the first, you have to clone rep:
 * cloning repository:
 ```
 git clone https://github.com/AktanKasymaliev/gambling-django-project.git
