@@ -70,5 +70,4 @@ GRANT ALL PRIVILEGES ON DATABASE <database name> TO '<database user>';
 ```
 - docker-compose up --build
 - docker-compose run web python manage.py createsuperuser
-- docker-compose run web
 ```
