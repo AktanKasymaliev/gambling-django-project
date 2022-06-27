@@ -14,6 +14,19 @@ class SlotMachine(models.Model):
         verbose_name = 'Slot Machine'
         verbose_name_plural = 'Slot Machines'
 
+class Session(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    slot_machine = models.ForeignKey(SlotMachine, on_delete=models.CASCADE)
+    round_played = models.PositiveSmallIntegerField(verbose_name='All played round', default=0)
+
+    def __str__(self) -> str:
+        return f"Session on - {self.slot_machine.id} machine ({self.user.username})"
+
+    class Meta:
+        db_table = 'session_db'
+        verbose_name = 'Session'
+        verbose_name_plural = 'Sessions'
+
 class Slot(models.Model):
     slot_machine = models.ForeignKey(SlotMachine, on_delete=models.CASCADE, related_name='slot')
     box = models.PositiveSmallIntegerField(verbose_name='Box of cell')
@@ -29,7 +42,6 @@ class Slot(models.Model):
         verbose_name_plural = 'Slots'
 
 class CurrentRound(models.Model):
-    # users = models.ManyToManyField(Users, related_name='round_users, blank=True)
     slot_machine = models.OneToOneField(SlotMachine, on_delete=models.CASCADE)
     round = models.PositiveSmallIntegerField(verbose_name='Round', default=0)
 

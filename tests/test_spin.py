@@ -45,13 +45,13 @@ class SlotChooseTest(BaseTestCaseSlot):
         login_response = self.client.post(self.login_url, self.user)
         return login_response.json()['access']
     
-    def __spint_slot_with_token(self, jwt_token: str) -> HttpResponse:
+    def __spin_slot_with_token(self, jwt_token: str) -> HttpResponse:
         return self.client.post(self.spin_url, HTTP_AUTHORIZATION=f'JWT {jwt_token}')
 
     def test_on_spining_slot(self):
         jwt_token = self.__login()
         self.__auto_complete_slots(self.slot_machine.id)
-        spin_response = self.__spint_slot_with_token(jwt_token)
+        spin_response = self.__spin_slot_with_token(jwt_token)
         self.assertEqual(spin_response.status_code, 200)
 
     def test_on_spining_slot_without_login(self):
@@ -60,7 +60,7 @@ class SlotChooseTest(BaseTestCaseSlot):
     
     def test_on_spining_slot_without_slots(self):
         jwt_token = self.__login()
-        spin_response = self.__spint_slot_with_token(jwt_token)
+        spin_response = self.__spin_slot_with_token(jwt_token)
         self.assertEqual(spin_response.status_code, 404)
     
     def test_get_jackpot(self):
@@ -69,10 +69,24 @@ class SlotChooseTest(BaseTestCaseSlot):
 
         jackpot_string: str
         for _ in range(11):
-            spin_response = self.__spint_slot_with_token(jwt_token)
+            spin_response = self.__spin_slot_with_token(jwt_token)
             spin_data = spin_response.json()
-            if spin_data["your_box"] == "Jackpot":
-                jackpot_string = spin_data["your_box"]
+            if spin_data["is_jackpot"] == True:
+                jackpot_string = spin_data["is_jackpot"]
 
         self.assertEqual(spin_response.status_code, 200)
-        self.assertEqual(jackpot_string, "Jackpot")
+        self.assertEqual(jackpot_string, True)
+    
+    def test_user_register_in_slot_machine(self):
+        jwt_token = self.__login()
+        self.__auto_complete_slots(self.slot_machine.id)
+        self.__spin_slot_with_token(jwt_token)
+
+        response = self.client.get(
+            self.spin_url,
+            HTTP_AUTHORIZATION=f'JWT {jwt_token}'
+            )
+        spin_users_info = response.json()['users']
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(spin_users_info[-1]['user'], self.user['username'])

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from gamble.models import CurrentRound, Slot, SlotMachine
+from gamble.models import CurrentRound, Session, Slot, SlotMachine
 
 @admin.register(SlotMachine)
 class SlotMachineAdmin(admin.ModelAdmin):
@@ -12,4 +12,8 @@ class SlotAdmin(admin.ModelAdmin):
 
 @admin.register(CurrentRound)
 class CurrentRoundAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Session)
+class SessionAdmin(admin.ModelAdmin):
     pass
