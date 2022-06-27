@@ -1,14 +1,19 @@
 from random import choices
-import requests
 
 from gamble.models import Slot, CurrentRound, SlotMachine
+# from gamble.serializers import RoundSerializer
 from config.settings import HOST
 
-from rest_framework import views, response, status
+import requests
+from rest_framework import views, response, status, permissions
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class GetTheRandomBoxView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-    def __get_current_round(self, slot_machine_id: int) -> CurrentRound:
+    def __get_current_round(self, request, slot_machine_id: int) -> CurrentRound:
         """
         It creates a new CurrentRound object and returns it
         
@@ -17,9 +22,11 @@ class GetTheRandomBoxView(views.APIView):
         """
         slot_machine = self.__get_slot_machine(slot_machine_id)
         try:
-            current_round = CurrentRound.objects.get(slot_machine=slot_machine)
+            current_round = CurrentRound.objects.get(slot_machine=slot_machine_id)
         except CurrentRound.DoesNotExist:
             current_round = CurrentRound.objects.create(slot_machine=slot_machine)
+
+        # current_round.users.add(request.user)
 
         return current_round
 
@@ -46,7 +53,7 @@ class GetTheRandomBoxView(views.APIView):
     def __delete_slot_instances(self, slot_machine_id: int, box: Slot) -> None:
         Slot.objects.filter(box=box, slot_machine=slot_machine_id).delete()
 
-    def __reload_round(self, current_round: CurrentRound, slot_machine_id: int) -> None: 
+    def __reload_round(self, current_round: CurrentRound, slot_machine_id: int) -> None:
         current_round.delete()
         requests.get(f'http://{HOST}/api/auto-complete/{slot_machine_id}/')
 
@@ -62,7 +69,7 @@ class GetTheRandomBoxView(views.APIView):
         :param slot_machine_id: The id of the slot machine
         :return: The current round, the id of the box, and the weight of the box.
         """
-        current_round = self.__get_current_round(slot_machine_id)
+        current_round = self.__get_current_round(request, slot_machine_id)
         if current_round.round <= 11:
             try:
                 boxes = Slot.objects.filter(slot_machine=slot_machine_id, is_jackpot=False)
@@ -79,6 +86,21 @@ class GetTheRandomBoxView(views.APIView):
 
                 self.__reload_round(current_round, slot_machine_id)
                 return self.__return_response(current_round, jackpot_box)
+
+    # def get(self, request, slot_machine_id: int):
+    #     """
+    #     It responses all users whoes played in slot machine
+        
+    #     :param request: The request object
+    #     :param slot_machine_id: int
+    #     :type slot_machine_id: int
+    #     :return: The current round of the slot machine.
+    #     """
+    #     current_round = CurrentRound.objects.get(slot_machine=slot_machine_id)
+
+    #     return response.Response(
+    #         current_round.users
+    #         )
 
 class AutoCreatePatternSlotsView(views.APIView):
     """

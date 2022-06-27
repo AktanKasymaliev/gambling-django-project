@@ -1,4 +1,8 @@
+from email.policy import default
 from django.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class SlotMachine(models.Model):
     
@@ -25,6 +29,7 @@ class Slot(models.Model):
         verbose_name_plural = 'Slots'
 
 class CurrentRound(models.Model):
+    # users = models.ManyToManyField(Users, related_name='round_users, blank=True)
     slot_machine = models.OneToOneField(SlotMachine, on_delete=models.CASCADE)
     round = models.PositiveSmallIntegerField(verbose_name='Round', default=0)
 
