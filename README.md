@@ -75,3 +75,4 @@ optional (if smth will go wrong):
 - docker-compose up --build
 - docker-compose run web python manage.py createsuperuser
 ```
+# See documentation [here](/gamble/README.md)
