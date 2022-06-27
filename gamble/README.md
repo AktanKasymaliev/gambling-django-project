@@ -17,4 +17,4 @@ How to start?
 
 * Note:  While the game is going, you can see info about users, just send GET request on the same URL
         ![Screenshot](/readme_images/info.png?raw=true "Spin")
-*        `http://<HOST>/swagger/` - Here you can see APIes
+        `http://<HOST>/swagger/` - Here you can see APIes
