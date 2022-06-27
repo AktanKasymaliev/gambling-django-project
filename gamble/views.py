@@ -1,4 +1,4 @@
-from random import choices
+from random import choices, shuffle
 
 from gamble.models import Slot, CurrentRound, SlotMachine
 # from gamble.serializers import RoundSerializer
@@ -25,6 +25,7 @@ class GetTheRandomBoxView(views.APIView):
             current_round = CurrentRound.objects.get(slot_machine=slot_machine_id)
         except CurrentRound.DoesNotExist:
             current_round = CurrentRound.objects.create(slot_machine=slot_machine)
+            # requests.get(f'http://{HOST}/api/auto-complete/{slot_machine_id}/')
 
         # current_round.users.add(request.user)
 
@@ -37,25 +38,30 @@ class GetTheRandomBoxView(views.APIView):
         :param slot_machine_id: The id of the slot machine that the user is playing
         :return: The slot machine object with the id that is passed in.
         """
-        return SlotMachine.objects.get(id=slot_machine_id)
+        try:
+            return SlotMachine.objects.get(id=slot_machine_id)
+        except SlotMachine.DoesNotExist:
+            return response.Response(
+                "Please, add new slot machine for continue.", 
+                status=status.HTTP_404_NOT_FOUND)
+
 
     def __return_response(self, current_round: int, box: Slot) -> response.Response:
         return response.Response(
-                {"Round": current_round.round,
-                 "Id of box": box.box,
-                 "Your box": box.weight}, status=status.HTTP_200_OK
+                {"round": current_round.round,
+                 "id_of_box": box.box,
+                 "your_box": box.weight}, status=status.HTTP_200_OK
                 )
     
     def __increase_round_counter(self, state_of_round: CurrentRound) -> None:
         state_of_round.round += 1 
         state_of_round.save()
     
-    def __delete_slot_instances(self, slot_machine_id: int, box: Slot) -> None:
+    def __delete_slot_instance(self, slot_machine_id: int, box: Slot) -> None:
         Slot.objects.filter(box=box, slot_machine=slot_machine_id).delete()
 
     def __reload_round(self, current_round: CurrentRound, slot_machine_id: int) -> None:
         current_round.delete()
-        requests.get(f'http://{HOST}/api/auto-complete/{slot_machine_id}/')
 
 
     def post(self, request, slot_machine_id: int):
@@ -70,37 +76,32 @@ class GetTheRandomBoxView(views.APIView):
         :return: The current round, the id of the box, and the weight of the box.
         """
         current_round = self.__get_current_round(request, slot_machine_id)
-        if current_round.round <= 11:
+        if current_round.round < 10:
             try:
-                boxes = Slot.objects.filter(slot_machine=slot_machine_id, is_jackpot=False)
+                boxes = list(Slot.objects.filter(slot_machine=slot_machine_id, is_jackpot=False))
+                shuffle(boxes)
                 randome_box = choices(boxes)[-1]
-                self.__delete_slot_instances(slot_machine_id, randome_box.box)
+
+                self.__delete_slot_instance(slot_machine_id, randome_box.box)
                 self.__increase_round_counter(current_round)
 
                 return self.__return_response(current_round, randome_box)
 
-            except IndexError:
-                jackpot_box = Slot.objects.get(slot_machine=slot_machine_id, is_jackpot=True)
-                self.__delete_slot_instances(slot_machine_id, jackpot_box.box)
-                self.__increase_round_counter(current_round)
+            except (IndexError, Slot.DoesNotExist):
+                return response.Response(
+                    "Please, add new slots for continue.",
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        else:
+            jackpot_box = Slot.objects.get(slot_machine=slot_machine_id, is_jackpot=True)
+            self.__delete_slot_instance(slot_machine_id, jackpot_box.box)
+            self.__increase_round_counter(current_round)
 
-                self.__reload_round(current_round, slot_machine_id)
-                return self.__return_response(current_round, jackpot_box)
+            self.__reload_round(current_round, slot_machine_id)
+            return self.__return_response(current_round, jackpot_box)
 
-    # def get(self, request, slot_machine_id: int):
-    #     """
-    #     It responses all users whoes played in slot machine
-        
-    #     :param request: The request object
-    #     :param slot_machine_id: int
-    #     :type slot_machine_id: int
-    #     :return: The current round of the slot machine.
-    #     """
-    #     current_round = CurrentRound.objects.get(slot_machine=slot_machine_id)
-
-    #     return response.Response(
-    #         current_round.users
-    #         )
+    def get(self, request, slot_machine_id: int):
+        pass
 
 class AutoCreatePatternSlotsView(views.APIView):
     """
@@ -120,5 +121,3 @@ class AutoCreatePatternSlotsView(views.APIView):
         Slot.objects.create(slot_machine=machine, box=10, weight="45")
         Slot.objects.create(slot_machine=machine, box=11, weight="Jackpot", is_jackpot=True)
         return response.Response("Auto complete done")
-        
-        #TODO игра готова, осталось доделать юзеров
