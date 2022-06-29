@@ -68,7 +68,7 @@ optional (if smth will go wrong):
 
 * And finally start project: 
 ```
-- python3 manage.py runserver
+- python manage.py runserver
 ```
 * Docker app:
 ```
